@@ -40,6 +40,7 @@
         "stop",
         "strictEqual",
         "test",
-        "sinon"
+        "sinon",
+	"dacast"
     ]
 }

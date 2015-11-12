@@ -2055,9 +2055,6 @@ class Player extends Component {
       this.error_ = new MediaError(err);
     }
 
-    // fire an error event on the player
-    this.trigger('error');
-
     // add the vjs-error classname to the player
     this.addClass('vjs-error');
 
@@ -2065,6 +2062,9 @@ class Player extends Component {
     // ie8 just logs "[object object]" if you just log the error object
     log.error(`(CODE:${this.error_.code} ${MediaError.errorTypes[this.error_.code]})`, this.error_.message, this.error_);
 
+    // fire an error event on the player
+    this.trigger('error');
+    
     return this;
   }
 
@@ -2529,6 +2529,19 @@ class Player extends Component {
   }
 
 }
+
+// Player for javascript
+Player.prototype.setLevel = function(pValue) {
+  this.techCall_('setLevel', pValue);
+};
+
+Player.prototype.getLevels = function() {
+  return this.techGet_('getLevels');
+};
+
+Player.prototype.getLevel = function() {
+  return this.techGet_('getLevel');
+};
 
 /*
  * Global player list

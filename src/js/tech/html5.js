@@ -783,6 +783,33 @@ class Html5 extends Tech {
 
 }
 
+//use dacats player library to simulate html5 multibitrates
+Html5.prototype.getLevels = function() {
+  var dcplayer = dacast.players[this.player().options().player_id];
+
+  if (dcplayer.hasMultipleBitRates()) {
+    return dcplayer.getLevels();
+  } else {
+    return null;
+  }
+};
+
+Html5.prototype.setLevel = function(val) {
+  var dcplayer = dacast.players[this.player().options().player_id];
+
+  if (dcplayer.hasMultipleBitRates()) {
+    dcplayer.setLevel(val);
+    dcplayer.update();
+  }
+};
+
+Html5.prototype.getLevel = function() {
+  var dcplayer = dacast.players[this.player().options().player_id];
+  if (dcplayer.hasMultipleBitRates()) {
+    return dcplayer.getLevel();
+  }
+};
+
 
 /* HTML5 Support Testing ---------------------------------------------------- */
 
@@ -960,7 +987,8 @@ Html5.Events = [
   'play',
   'pause',
   'ratechange',
-  'volumechange'
+  'volumechange',
+  'levelswitch'
 ];
 
 /*

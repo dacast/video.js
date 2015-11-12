@@ -308,6 +308,18 @@ class Flash extends Tech {
 
 }
 
+Flash.prototype.getLevels = function() {
+  return this.el_.vjs_getLevels();
+};
+
+Flash.prototype.setLevel = function(pValue) {
+  this.el_.vjs_setCurrentLevel(pValue);
+};
+
+Flash.prototype.getLevel = function() {
+  return this.el_.vjs_getCurrentLevel();
+};
+
 
 // Create setters and getters for attributes
 const _api = Flash.prototype;
@@ -408,7 +420,10 @@ Flash.formats = {
   'video/flv': 'FLV',
   'video/x-flv': 'FLV',
   'video/mp4': 'MP4',
-  'video/m4v': 'MP4'
+  'video/m4v': 'MP4',
+  'application/adobe-f4m': 'F4M',
+  'application/adobe-f4v': 'F4V',
+  'application/dash+xml': 'MPD'
 };
 
 Flash.onReady = function(currSwf){
