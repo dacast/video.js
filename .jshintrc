@@ -42,7 +42,7 @@
         "strictEqual",
         "test",
         "sinon",
-	"dacast"
-        "throws",
+	"dacast",
+        "throws"
     ]
 }
