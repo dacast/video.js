@@ -32,8 +32,10 @@ import BigPlayButton from './big-play-button.js';
 import ControlBar from './control-bar/control-bar.js';
 import ErrorDisplay from './error-display.js';
 import TextTrackSettings from './tracks/text-track-settings.js';
+import ModalDialog from './modal-dialog';
 
 // Require html5 tech, at least for disposing the original video tag
+import Tech from './tech/tech.js';
 import Html5 from './tech/html5.js';
 
 /**
@@ -279,8 +281,8 @@ class Player extends Component {
     // of the player in a way that's still overrideable by CSS, just like the
     // video element
     this.styleEl_ = stylesheet.createStyleElement('vjs-styles-dimensions');
-    let defaultsStyleEl = document.querySelector('.vjs-styles-defaults');
-    let head = document.querySelector('head');
+    let defaultsStyleEl = Dom.$('.vjs-styles-defaults');
+    let head = Dom.$('head');
     head.insertBefore(this.styleEl_, defaultsStyleEl ? defaultsStyleEl.nextSibling : head.firstChild);
 
     // Pass in the width/height/aspectRatio options which will update the style el
@@ -485,7 +487,7 @@ class Player extends Component {
 
     // get rid of the HTML5 video tag as soon as we are using another tech
     if (techName !== 'Html5' && this.tag) {
-      Component.getComponent('Html5').disposeMediaElement(this.tag);
+      Tech.getTech('Html5').disposeMediaElement(this.tag);
       this.tag.player = null;
       this.tag = null;
     }
@@ -525,7 +527,12 @@ class Player extends Component {
     }
 
     // Initialize tech instance
-    let techComponent = Component.getComponent(techName);
+    let techComponent = Tech.getTech(techName);
+    // Support old behavior of techs being registered as components.
+    // Remove once that deprecated behavior is removed.
+    if (!techComponent) {
+      techComponent = Component.getComponent(techName);
+    }
     this.tech_ = new techComponent(techOptions);
 
     // player.triggerReady is always async, so don't need this to be async
@@ -590,7 +597,7 @@ class Player extends Component {
   unloadTech_() {
     // Save the current text tracks so that we can reuse the same text tracks with the next tech
     this.textTracks_ = this.textTracks();
-    this.textTracksJson_ = textTrackConverter.textTracksToJson(this);
+    this.textTracksJson_ = textTrackConverter.textTracksToJson(this.tech_);
 
     this.isReady_ = false;
 
@@ -1640,6 +1647,46 @@ class Player extends Component {
   }
 
   /**
+   * Check whether the player can play a given mimetype
+   *
+   * @param {String} type The mimetype to check
+   * @return {String} 'probably', 'maybe', or '' (empty string)
+   * @method canPlayType
+   */
+  canPlayType(type) {
+    let can;
+
+    // Loop through each playback technology in the options order
+    for (let i = 0, j = this.options_.techOrder; i < j.length; i++) {
+      let techName = toTitleCase(j[i]);
+      let tech = Tech.getTech(techName);
+
+      // Support old behavior of techs being registered as components.
+      // Remove once that deprecated behavior is removed.
+      if (!tech) {
+        tech = Component.getComponent(techName);
+      }
+
+      // Check if the current tech is defined before continuing
+      if (!tech) {
+        log.error(`The "${techName}" tech is undefined. Skipped browser support check for that tech.`);
+        continue;
+      }
+
+      // Check if the browser supports this technology
+      if (tech.isSupported()) {
+        can = tech.canPlayType(type);
+
+        if (can) {
+          return can;
+        }
+      }
+    }
+
+    return '';
+  }
+
+  /**
    * Select source based on tech order
    *
    * @param {Array} sources The sources for a media asset
@@ -1650,8 +1697,12 @@ class Player extends Component {
     // Loop through each playback technology in the options order
     for (var i=0,j=this.options_.techOrder;i<j.length;i++) {
       let techName = toTitleCase(j[i]);
-      let tech = Component.getComponent(techName);
-
+      let tech = Tech.getTech(techName);
+      // Support old behavior of techs being registered as components.
+      // Remove once that deprecated behavior is removed.
+      if (!tech) {
+        tech = Component.getComponent(techName);
+      }
       // Check if the current tech is defined before continuing
       if (!tech) {
         log.error(`The "${techName}" tech is undefined. Skipped browser support check for that tech.`);
@@ -1712,7 +1763,12 @@ class Player extends Component {
       return this.techGet_('src');
     }
 
-    let currentTech = Component.getComponent(this.techName_);
+    let currentTech = Tech.getTech(this.techName_);
+    // Support old behavior of techs being registered as components.
+    // Remove once that deprecated behavior is removed.
+    if (!currentTech) {
+      currentTech = Component.getComponent(this.techName_);
+    }
 
     // case: Array of source objects to choose from and pick the best to play
     if (Array.isArray(source)) {
@@ -2477,6 +2533,38 @@ class Player extends Component {
     }
 
     return options;
+  }
+
+  /**
+   * Creates a simple modal dialog (an instance of the `ModalDialog`
+   * component) that immediately overlays the player with arbitrary
+   * content and removes itself when closed.
+   *
+   * @param {String|Function|Element|Array|Null} content
+   *        Same as `ModalDialog#content`'s param of the same name.
+   *
+   *        The most straight-forward usage is to provide a string or DOM
+   *        element.
+   *
+   * @param {Object} [options]
+   *        Extra options which will be passed on to the `ModalDialog`.
+   *
+   * @return {ModalDialog}
+   */
+  createModal(content, options) {
+    let player = this;
+
+    options = options || {};
+    options.content = content || '';
+
+    let modal = new ModalDialog(player, options);
+
+    player.addChild(modal);
+    modal.on('dispose', function() {
+      player.removeChild(modal);
+    });
+
+    return modal.open();
   }
 
   /**

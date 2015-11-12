@@ -824,3 +824,38 @@ expect(3);
   player.language('en-GB');
   strictEqual(player.localize('Good'), 'Brilliant', 'Ignored case');
 });
+
+test('should return correct values for canPlayType', function(){
+  var player = TestHelpers.makePlayer();
+
+  equal(player.canPlayType('video/mp4'), 'maybe', 'player can play mp4 files');
+  equal(player.canPlayType('video/unsupported-format'), '', 'player can not play unsupported files');
+
+  player.dispose();
+});
+
+test('createModal()', function() {
+  var player = TestHelpers.makePlayer();
+  var modal = player.createModal('foo');
+  var spy = sinon.spy();
+
+  modal.on('dispose', spy);
+
+  expect(5);
+  strictEqual(modal.el().parentNode, player.el(), 'the modal is injected into the player');
+  strictEqual(modal.content(), 'foo', 'content is set properly');
+  ok(modal.opened(), 'modal is opened by default');
+  modal.close();
+  ok(spy.called, 'modal was disposed when closed');
+  strictEqual(player.children().indexOf(modal), -1, 'modal was removed from player\'s children');
+});
+
+test('createModal() options object', function() {
+  var player = TestHelpers.makePlayer();
+  var modal = player.createModal('foo', {content: 'bar', label: 'boo'});
+
+  expect(2);
+  strictEqual(modal.content(), 'foo', 'content argument takes precedence');
+  strictEqual(modal.options_.label, 'boo', 'modal options are set properly');
+  modal.close();
+});

@@ -2,9 +2,51 @@ CHANGELOG
 =========
 
 ## HEAD (Unreleased)
-* @imbcmdth fixed an issue with emulateTextTracks being called before the tech dom was ready ([view](https://github.com/videojs/video.js/pull/2692))
+_(none)_
 
 --------------------
+
+## 5.2.0 (2015-11-10)
+* @gkatsev made initListeners more general and added Tech.isTech. Fixes #2767 ([view](https://github.com/videojs/video.js/pull/2773))
+* @dmlap updated swf to 5.0.1 ([view](https://github.com/videojs/video.js/pull/2795))
+* @gkatsev added a tech registry. Fixes #2772 ([view](https://github.com/videojs/video.js/pull/2782))
+* @Lillemanden impoved logic for dividing RTMP paths ([view](https://github.com/videojs/video.js/pull/2787))
+* @bdeitte added a test for improved RTMP path dividing logic ([view](https://github.com/videojs/video.js/pull/2794))
+* @paladox updated grunt-cli dependency ([view](https://github.com/videojs/video.js/pull/2555))
+* @paladox updated grunt-contrib-jshint ([view](https://github.com/videojs/video.js/pull/2554))
+* @siebrand updated dutch translations ([view](https://github.com/videojs/video.js/pull/2556))
+* @misteroneill exposed DOM helpers ([view](https://github.com/videojs/video.js/pull/2754))
+* @incompl fixed broken link to reduced test cases article ([view](https://github.com/videojs/video.js/pull/2801))
+* @zjruan updated text track prototype loops to blacklist constructor for IE8 ([view](https://github.com/videojs/video.js/pull/2565))
+* @gkatsev fixed usage of textTracksToJson ([view](https://github.com/videojs/video.js/pull/2797))
+* @gkatsev updated contrib.json to use / as branch-name separator in feature-accept ([view](https://github.com/videojs/video.js/pull/2803))
+* @gkatsev updated MediaLoader to check for techs in their registry ([view](https://github.com/videojs/video.js/pull/2798))
+
+## 5.1.0 (2015-11-02)
+* @typcn bumped grunt-sass to ^1.0.0 to support node 4.x ([view](https://github.com/videojs/video.js/pull/2645))
+* @gkatsev removed unhelpful isCrossOrigin test ([view](https://github.com/videojs/video.js/pull/2715))
+* @forbesjo updated karma to use all installed browsers for unit tests ([view](https://github.com/videojs/video.js/pull/2708))
+* @forbesjo removed android/ios tests to increase build stability ([view](https://github.com/videojs/video.js/pull/2739))
+* @nickygerritsen added canPlayType method to player ([view](https://github.com/videojs/video.js/pull/2709))
+* @gkatsev fixes track tests and ignored empty properties in tracks converter ([view](https://github.com/videojs/video.js/pull/2744))
+* @misteroneill added a modal dialog ([view](https://github.com/videojs/video.js/pull/2668))
+* @misteroneill removed z-index from big play button ([view](https://github.com/videojs/video.js/pull/2639))
+* @DaveVoyles updated URL to player API docs ([view](https://github.com/videojs/video.js/pull/2685))
+* @ ([view](https://github.com/videojs/video.js/pull/2691))
+* @kahwee Fixed sandbox plugin example to work in Video.js 5 ([view](https://github.com/videojs/video.js/pull/2691))
+* @Soviut Fixed argument names in some API docs ([view](https://github.com/videojs/video.js/pull/2714))
+* @forbesjo Added Microsoft Caption Maker link ([view](https://github.com/videojs/video.js/pull/2618))
+* @misteroneill updated modal dialog CSS ([view](https://github.com/videojs/video.js/pull/2756))
+* @misteroneill Add browserify
+* @brkattk updated emulateTextTrack to exit early if no textTracks ([view](https://github.com/videojs/video.js/pull/2426))
+* @chemoish Fix captions sticking to bottom for webkit browsers. Fixes #2193 ([view](https://github.com/videojs/video.js/pull/2702))
+* @imbcmdth Deferred the implementation of select functions in the tech to source handlers if they provide them ([view](https://github.com/videojs/video.js/pull/2760))
+
+## 5.0.2 (2015-10-23)
+* @imbcmdth fixed an issue with emulateTextTracks being called before the tech dom was ready ([view](https://github.com/videojs/video.js/pull/2692))
+* @gkatsev bumped obj.assign to fix uncaught SecurityError in iframes. Fixes #2703 ([view](https://github.com/videojs/video.js/pull/2721))
+* @gkatsev updated contrib update and have contrib release only update local branches ([view](https://github.com/videojs/video.js/pull/2723))
+* @gkatsev bumped chg to fix stalling issues ([view](https://github.com/videojs/video.js/pull/2732))
 
 ## 5.0.0 (2015-09-29)
 * @carpasse infer MIME types from file extensions in the HTML5 and Flash techs ([view](https://github.com/videojs/video.js/pull/1974))

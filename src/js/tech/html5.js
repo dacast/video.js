@@ -771,7 +771,7 @@ class Html5 extends Tech {
 
     this.remoteTextTracks().removeTrack_(track);
 
-    tracks = this.el().querySelectorAll('track');
+    tracks = this.$$('track');
 
     i = tracks.length;
     while (i--) {
@@ -856,6 +856,22 @@ Tech.withSourceHandlers(Html5);
 Html5.nativeSourceHandler = {};
 
 /*
+ * Check if the video element can play the given videotype
+ *
+ * @param  {String} type    The mimetype to check
+ * @return {String}         'probably', 'maybe', or '' (empty string)
+ */
+Html5.nativeSourceHandler.canPlayType = function(type){
+  // IE9 on Windows 7 without MediaPlayer throws an error here
+  // https://github.com/videojs/video.js/issues/519
+  try {
+    return Html5.TEST_VID.canPlayType(type);
+  } catch(e) {
+    return '';
+  }
+};
+
+/*
  * Check if the video element can handle the source natively
  *
  * @param  {Object} source  The source object
@@ -864,24 +880,14 @@ Html5.nativeSourceHandler = {};
 Html5.nativeSourceHandler.canHandleSource = function(source){
   var match, ext;
 
-  function canPlayType(type){
-    // IE9 on Windows 7 without MediaPlayer throws an error here
-    // https://github.com/videojs/video.js/issues/519
-    try {
-      return Html5.TEST_VID.canPlayType(type);
-    } catch(e) {
-      return '';
-    }
-  }
-
   // If a type was provided we should rely on that
   if (source.type) {
-    return canPlayType(source.type);
+    return Html5.nativeSourceHandler.canPlayType(source.type);
   } else if (source.src) {
     // If no type, fall back to checking 'video/[EXTENSION]'
     ext = Url.getFileExtension(source.src);
 
-    return canPlayType(`video/${ext}`);
+    return Html5.nativeSourceHandler.canPlayType(`video/${ext}`);
   }
 
   return '';
@@ -1109,4 +1115,5 @@ Html5.disposeMediaElement = function(el){
 };
 
 Component.registerComponent('Html5', Html5);
+Tech.registerTech('Html5', Html5);
 export default Html5;
