@@ -6,6 +6,48 @@ _(none)_
 
 --------------------
 
+## 5.4.4 (2015-12-09)
+* @gkatsev switched to use custom vtt.js from npm ([view](https://github.com/videojs/video.js/pull/2905))
+
+## 5.4.3 (2015-12-08)
+* @gkatsev updated options customizer and github-release options ([view](https://github.com/videojs/video.js/pull/2903))
+
+## 5.4.2 (2015-12-08)
+* @gkatsev updated grunt-release config ([view](https://github.com/videojs/video.js/pull/2900))
+
+## 5.4.1 (2015-12-08)
+* @misteroneill updated videojs-ie8 to 1.1.1 ([view](https://github.com/videojs/video.js/pull/2869))
+* @gkatsev added Player#tech. Fixes #2617 ([view](https://github.com/videojs/video.js/pull/2883))
+* @nick11703 changed multiline comments in sass with single-line comments ([view](https://github.com/videojs/video.js/pull/2827))
+* @gkatsev added a Player#reset method. Fixes #2852 ([view](https://github.com/videojs/video.js/pull/2880))
+* @chemoish emulated HTMLTrackElement to enable track load events ([view](https://github.com/videojs/video.js/pull/2804))
+* @gkatsev added nullcheck for cues in updateForTrack. Fixes #2870 ([view](https://github.com/videojs/video.js/pull/2896))
+* @gkatsev added ability to release next tag from master ([view](https://github.com/videojs/video.js/pull/2894))
+* @gkatsev added chg- and github- release for next releases ([view](https://github.com/videojs/video.js/pull/2899))
+
+## 5.3.0 (2015-11-25)
+* @forbesjo updated formatTime to not go negative ([view](https://github.com/videojs/video.js/pull/2821))
+* @imbcmdth added sourceOrder option for source-first ordering in selectSource ([view](https://github.com/videojs/video.js/pull/2847))
+
+## 5.2.4 (2015-11-25)
+* @gesinger checked for track changes before tech started listening ([view](https://github.com/videojs/video.js/pull/2835))
+* @gesinger fixed handler explosion for cuechange events ([view](https://github.com/videojs/video.js/pull/2849))
+* @mmcc fixed vertical volume ([view](https://github.com/videojs/video.js/pull/2859))
+
+## 5.2.3 (2015-11-24)
+* @gkatsev fixed clearing out errors ([view](https://github.com/videojs/video.js/pull/2850))
+
+## 5.2.2 (2015-11-23)
+* @DatTran fixed bower paths. Fixes #2740 ([view](https://github.com/videojs/video.js/pull/2775))
+* @nbibler ensured classes begin with alpha characters. Fixes #2828 ([view](https://github.com/videojs/video.js/pull/2829))
+* @bcvio fixed returning current source rather than blob url ([view](https://github.com/videojs/video.js/pull/2833))
+* @tomaspinho added ended event to API docs ([view](https://github.com/videojs/video.js/pull/2836))
+* @paladox updated xhr from deprecated ver to v2.2 ([view](https://github.com/videojs/video.js/pull/2837))
+
+## 5.2.1 (2015-11-16)
+* @dmlap Check a component is a function before new-ing ([view](https://github.com/videojs/video.js/pull/2814))
+* @ksjun corrected the registerTech export ([view](https://github.com/videojs/video.js/pull/2816))
+
 ## 5.2.0 (2015-11-10)
 * @gkatsev made initListeners more general and added Tech.isTech. Fixes #2767 ([view](https://github.com/videojs/video.js/pull/2773))
 * @dmlap updated swf to 5.0.1 ([view](https://github.com/videojs/video.js/pull/2795))
