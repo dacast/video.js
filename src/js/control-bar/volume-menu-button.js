@@ -1,26 +1,24 @@
 /**
  * @file volume-menu-button.js
  */
-import Button from '../button.js';
 import * as Fn from '../utils/fn.js';
 import Component from '../component.js';
-import Menu from '../menu/menu.js';
-import MenuButton from '../menu/menu-button.js';
+import Popup from '../popup/popup.js';
+import PopupButton from '../popup/popup-button.js';
 import MuteToggle from './mute-toggle.js';
 import VolumeBar from './volume-control/volume-bar.js';
-import document from 'global/document';
 
 /**
- * Button for volume menu
+ * Button for volume popup
  *
  * @param {Player|Object} player
  * @param {Object=} options
- * @extends MenuButton
+ * @extends PopupButton
  * @class VolumeMenuButton
  */
-class VolumeMenuButton extends MenuButton {
+class VolumeMenuButton extends PopupButton {
 
-  constructor(player, options={}){
+  constructor(player, options = {}) {
     // Default to inline
     if (options.inline === undefined) {
       options.inline = true;
@@ -50,7 +48,7 @@ class VolumeMenuButton extends MenuButton {
 
     // hide mute toggle if the current tech doesn't support volume control
     function updateVisibility() {
-      if (player.tech_ && player.tech_['featuresVolumeControl'] === false) {
+      if (player.tech_ && player.tech_.featuresVolumeControl === false) {
         this.addClass('vjs-hidden');
       } else {
         this.removeClass('vjs-hidden');
@@ -60,12 +58,20 @@ class VolumeMenuButton extends MenuButton {
     updateVisibility.call(this);
     this.on(player, 'loadstart', updateVisibility);
 
-    this.on(this.volumeBar, ['slideractive', 'focus'], function(){
+    this.on(this.volumeBar, ['slideractive', 'focus'], function() {
       this.addClass('vjs-slider-active');
     });
 
-    this.on(this.volumeBar, ['sliderinactive', 'blur'], function(){
+    this.on(this.volumeBar, ['sliderinactive', 'blur'], function() {
       this.removeClass('vjs-slider-active');
+    });
+
+    this.on(this.volumeBar, ['focus'], function() {
+      this.addClass('vjs-lock-showing');
+    });
+
+    this.on(this.volumeBar, ['blur'], function() {
+      this.removeClass('vjs-lock-showing');
     });
   }
 
@@ -77,7 +83,8 @@ class VolumeMenuButton extends MenuButton {
    */
   buildCSSClass() {
     let orientationClass = '';
-    if (!!this.options_.vertical) {
+
+    if (this.options_.vertical) {
       orientationClass = 'vjs-volume-menu-button-vertical';
     } else {
       orientationClass = 'vjs-volume-menu-button-horizontal';
@@ -89,27 +96,28 @@ class VolumeMenuButton extends MenuButton {
   /**
    * Allow sub components to stack CSS class names
    *
-   * @return {Menu} The volume menu button
-   * @method createMenu
+   * @return {Popup} The volume popup button
+   * @method createPopup
    */
-  createMenu() {
-    let menu = new Menu(this.player_, {
+  createPopup() {
+    const popup = new Popup(this.player_, {
       contentElType: 'div'
     });
 
-    let vb = new VolumeBar(this.player_, this.options_.volumeBar);
+    const vb = new VolumeBar(this.player_, this.options_.volumeBar);
 
-    menu.addChild(vb);
+    popup.addChild(vb);
 
+    this.menuContent = popup;
     this.volumeBar = vb;
 
     this.attachVolumeBarEvents();
 
-    return menu;
+    return popup;
   }
 
   /**
-   * Handle click on volume menu and calls super
+   * Handle click on volume popup and calls super
    *
    * @method handleClick
    */
@@ -119,12 +127,12 @@ class VolumeMenuButton extends MenuButton {
   }
 
   attachVolumeBarEvents() {
-    this.on(['mousedown', 'touchdown'], this.handleMouseDown);
+    this.menuContent.on(['mousedown', 'touchdown'], Fn.bind(this, this.handleMouseDown));
   }
 
   handleMouseDown(event) {
     this.on(['mousemove', 'touchmove'], Fn.bind(this.volumeBar, this.volumeBar.handleMouseMove));
-    this.on(document, ['mouseup', 'touchend'], this.handleMouseUp);
+    this.on(this.el_.ownerDocument, ['mouseup', 'touchend'], this.handleMouseUp);
   }
 
   handleMouseUp(event) {

@@ -1,6 +1,10 @@
 /**
  * @file video.js
  */
+
+/* global define */
+
+import window from 'global/window';
 import document from 'global/document';
 import * as setup from './setup';
 import * as stylesheet from './utils/stylesheet.js';
@@ -9,11 +13,12 @@ import EventTarget from './event-target';
 import * as Events from './utils/events.js';
 import Player from './player';
 import plugin from './plugins.js';
-import mergeOptions from '../../src/js/utils/merge-options.js';
+import mergeOptions from './utils/merge-options.js';
 import * as Fn from './utils/fn.js';
 import TextTrack from './tracks/text-track.js';
+import AudioTrack from './tracks/audio-track.js';
+import VideoTrack from './tracks/video-track.js';
 
-import assign from 'object.assign';
 import { createTimeRanges } from './utils/time-ranges.js';
 import formatTime from './utils/format-time.js';
 import log from './utils/log.js';
@@ -22,13 +27,10 @@ import * as browser from './utils/browser.js';
 import * as Url from './utils/url.js';
 import extendFn from './extend.js';
 import merge from 'lodash-compat/object/merge';
-import createDeprecationProxy from './utils/create-deprecation-proxy.js';
 import xhr from 'xhr';
 
 // Include the built-in techs
 import Tech from './tech/tech.js';
-import Html5 from './tech/html5.js';
-import Flash from './tech/flash.js';
 
 // HTML5 Element Shim for IE8
 if (typeof HTMLVideoElement === 'undefined') {
@@ -52,8 +54,8 @@ if (typeof HTMLVideoElement === 'undefined') {
  * @mixes videojs
  * @method videojs
  */
-var videojs = function(id, options, ready){
-  var tag; // Element of ID
+function videojs(id, options, ready) {
+  let tag;
 
   // Allow for element or ID to be passed in
   // String ID
@@ -77,11 +79,10 @@ var videojs = function(id, options, ready){
       }
 
       return videojs.getPlayers()[id];
+    }
 
     // Otherwise get element for ID
-    } else {
-      tag = Dom.getEl(id);
-    }
+    tag = Dom.getEl(id);
 
   // ID is a media element
   } else {
@@ -89,35 +90,43 @@ var videojs = function(id, options, ready){
   }
 
   // Check for a useable element
-  if (!tag || !tag.nodeName) { // re: nodeName, could be a box div also
-    throw new TypeError('The element or ID supplied is not valid. (videojs)'); // Returns
+  // re: nodeName, could be a box div also
+  if (!tag || !tag.nodeName) {
+    throw new TypeError('The element or ID supplied is not valid. (videojs)');
   }
 
   // Element may have a player attr referring to an already created player instance.
   // If not, set up a new player and return the instance.
-  return tag['player'] || new Player(tag, options, ready);
-};
+  return tag.player || Player.players[tag.playerId] || new Player(tag, options, ready);
+}
 
 // Add default styles
-let style = Dom.$('.vjs-styles-defaults');
-if (!style) {
-  style = stylesheet.createStyleElement('vjs-styles-defaults');
-  let head = Dom.$('head');
-  head.insertBefore(style, head.firstChild);
-  stylesheet.setTextContent(style, `
-    .video-js {
-      width: 300px;
-      height: 150px;
-    }
+if (window.VIDEOJS_NO_DYNAMIC_STYLE !== true) {
+  let style = Dom.$('.vjs-styles-defaults');
 
-    .vjs-fluid {
-      padding-top: 56.25%
+  if (!style) {
+    style = stylesheet.createStyleElement('vjs-styles-defaults');
+    const head = Dom.$('head');
+
+    if (head) {
+      head.insertBefore(style, head.firstChild);
     }
-  `);
+    stylesheet.setTextContent(style, `
+      .video-js {
+        width: 300px;
+        height: 150px;
+      }
+
+      .vjs-fluid {
+        padding-top: 56.25%
+      }
+    `);
+  }
 }
 
 // Run Auto-load players
-// You have to wait at least once in case this script is loaded after your video in the DOM (weird behavior only with minified version)
+// You have to wait at least once in case this script is loaded after your
+// video in the DOM (weird behavior only with minified version)
 setup.autoSetupTimeout(1, videojs);
 
 /*
@@ -125,7 +134,7 @@ setup.autoSetupTimeout(1, videojs);
  *
  * @type {String}
  */
-videojs.VERSION = '__VERSION__';
+videojs.VERSION = require('../../package.json').version;
 
 /**
  * The global options object. These are the settings that take effect
@@ -147,21 +156,15 @@ videojs.options = Player.prototype.options_;
  * @mixes videojs
  * @method getPlayers
  */
-videojs.getPlayers = function() {
-  return Player.players;
-};
+videojs.getPlayers = () => Player.players;
 
 /**
- * For backward compatibility, expose players object.
+ * Expose players object.
  *
- * @deprecated
  * @memberOf videojs
- * @property {Object|Proxy} players
+ * @property {Object} players
  */
-videojs.players = createDeprecationProxy(Player.players, {
-  get: 'Access to videojs.players is deprecated; use videojs.getPlayers instead',
-  set: 'Modification of videojs.players is deprecated'
-});
+videojs.players = Player.players;
 
 /**
  * Get a component class object by name
@@ -271,12 +274,12 @@ videojs.TOUCH_ENABLED = browser.TOUCH_ENABLED;
  * Mimics ES6 subclassing with the `extend` keyword
  * ```js
  *     // Create a basic javascript 'class'
- *     function MyClass(name){
+ *     function MyClass(name) {
  *       // Set a property at initialization
  *       this.myName = name;
  *     }
  *     // Create an instance method
- *     MyClass.prototype.sayMyName = function(){
+ *     MyClass.prototype.sayMyName = function() {
  *       alert(this.myName);
  *     };
  *     // Subclass the exisitng class and change the name
@@ -339,12 +342,12 @@ videojs.mergeOptions = mergeOptions;
 /**
  * Change the context (this) of a function
  *
- *     videojs.bind(newContext, function(){
+ *     videojs.bind(newContext, function() {
  *       this === newContext
  *     });
  *
  * NOTE: as of v5.0 we require an ES5 shim, so you should use the native
- * `function(){}.bind(newContext);` instead of this.
+ * `function() {}.bind(newContext);` instead of this.
  *
  * @param  {*}        context The object to bind as scope
  * @param  {Function} fn      The function to be bound to a scope
@@ -367,7 +370,7 @@ videojs.bind = Fn.bind;
  *       var player = this;
  *       var alertText = myPluginOptions.text || 'Player is playing!'
  *
- *       player.on('play', function(){
+ *       player.on('play', function() {
  *         alert(alertText);
  *       });
  *     });
@@ -412,7 +415,7 @@ videojs.plugin = plugin;
  * @mixes videojs
  * @method addLanguage
  */
-videojs.addLanguage = function(code, data){
+videojs.addLanguage = function(code, data) {
   code = ('' + code).toLowerCase();
   return merge(videojs.options.languages, { [code]: data })[code];
 };
@@ -546,6 +549,22 @@ videojs.xhr = xhr;
 videojs.TextTrack = TextTrack;
 
 /**
+ * export the AudioTrack class so that source handlers can create
+ * AudioTracks and then add them to the players AudioTrackList
+ *
+ * @type {Function}
+ */
+videojs.AudioTrack = AudioTrack;
+
+/**
+ * export the VideoTrack class so that source handlers can create
+ * VideoTracks and then add them to the players VideoTrackList
+ *
+ * @type {Function}
+ */
+videojs.VideoTrack = VideoTrack;
+
+/**
  * Determines, via duck typing, whether or not a value is a DOM element.
  *
  * @method isEl
@@ -562,6 +581,17 @@ videojs.isEl = Dom.isEl;
  * @return {Boolean}
  */
 videojs.isTextNode = Dom.isTextNode;
+
+/**
+ * Creates an element and applies properties.
+ *
+ * @method createEl
+ * @param  {String} [tagName='div'] Name of tag to be created.
+ * @param  {Object} [properties={}] Element properties to be applied.
+ * @param  {Object} [attributes={}] Element attributes to be applied.
+ * @return {Element}
+ */
+videojs.createEl = Dom.createEl;
 
 /**
  * Check if an element has a CSS class
@@ -696,12 +726,12 @@ videojs.insertContent = Dom.insertContent;
  * still support requirejs and browserify. This also needs to be closure
  * compiler compatible, so string keys are used.
  */
-if (typeof define === 'function' && define['amd']) {
-  define('videojs', [], function(){ return videojs; });
+if (typeof define === 'function' && define.amd) {
+  define('videojs', [], () => videojs);
 
 // checking that module is an object too because of umdjs/umd#35
 } else if (typeof exports === 'object' && typeof module === 'object') {
-  module['exports'] = videojs;
+  module.exports = videojs;
 }
 
 export default videojs;

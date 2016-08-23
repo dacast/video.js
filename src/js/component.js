@@ -3,7 +3,6 @@
  *
  * Player Component - Base class for all UI objects
  */
-
 import window from 'global/window';
 import * as Dom from './utils/dom.js';
 import * as Fn from './utils/fn.js';
@@ -11,9 +10,7 @@ import * as Guid from './utils/guid.js';
 import * as Events from './utils/events.js';
 import log from './utils/log.js';
 import toTitleCase from './utils/to-title-case.js';
-import assign from 'object.assign';
 import mergeOptions from './utils/merge-options.js';
-
 
 /**
  * Base UI Component class
@@ -32,7 +29,7 @@ import mergeOptions from './utils/merge-options.js';
  * ```
  * Components are also event targets.
  * ```js
- *     button.on('click', function(){
+ *     button.on('click', function() {
  *       console.log('Button Clicked!');
  *     });
  *     button.trigger('customevent');
@@ -66,7 +63,7 @@ class Component {
     // If there was no ID from the options, generate one
     if (!this.id_) {
       // Don't require the player ID function in the case of mock players
-      let id = player && player.id && player.id() || 'no_player';
+      const id = player && player.id && player.id() || 'no_player';
 
       this.id_ = `${id}_component_${Guid.newGUID()}`;
     }
@@ -219,21 +216,21 @@ class Component {
   }
 
   localize(string) {
-    let code = this.player_.language && this.player_.language();
-    let languages = this.player_.languages && this.player_.languages();
+    const code = this.player_.language && this.player_.language();
+    const languages = this.player_.languages && this.player_.languages();
 
     if (!code || !languages) {
       return string;
     }
 
-    let language = languages[code];
+    const language = languages[code];
 
     if (language && language[string]) {
       return language[string];
     }
 
-    let primaryCode = code.split('-')[0];
-    let primaryLang = languages[primaryCode];
+    const primaryCode = code.split('-')[0];
+    const primaryLang = languages[primaryCode];
 
     if (primaryLang && primaryLang[string]) {
       return primaryLang[string];
@@ -336,10 +333,11 @@ class Component {
    *
    * @param {String|Component} child The class name or instance of a child to add
    * @param {Object=} options Options, including options to be passed to children of the child.
+   * @param {Number} index into our children array to attempt to add the child
    * @return {Component} The child component (created by this process if a string was used)
    * @method addChild
    */
-  addChild(child, options={}) {
+  addChild(child, options = {}, index = this.children_.length) {
     let component;
     let componentName;
 
@@ -360,14 +358,14 @@ class Component {
 
       // If no componentClass in options, assume componentClass is the name lowercased
       // (e.g. playButton)
-      let componentClassName = options.componentClass || toTitleCase(componentName);
+      const componentClassName = options.componentClass || toTitleCase(componentName);
 
       // Set name through options
       options.name = componentName;
 
       // Create a new object & element for this controls set
       // If there's no .player_, this is a player
-      let ComponentClass = Component.getComponent(componentClassName);
+      const ComponentClass = Component.getComponent(componentClassName);
 
       if (!ComponentClass) {
         throw new Error(`Component ${componentClassName} does not exist`);
@@ -388,7 +386,7 @@ class Component {
       component = child;
     }
 
-    this.children_.push(component);
+    this.children_.splice(index, 0, component);
 
     if (typeof component.id === 'function') {
       this.childIndex_[component.id()] = component;
@@ -405,7 +403,10 @@ class Component {
     // Add the UI object's element to the container div (box)
     // Having an element is not required
     if (typeof component.el === 'function' && component.el()) {
-      this.contentEl().appendChild(component.el());
+      const childNodes = this.contentEl().children;
+      const refNode = childNodes[index] || null;
+
+      this.contentEl().insertBefore(component.el(), refNode);
     }
 
     // Return so it can stored on parent object if desired.
@@ -445,7 +446,7 @@ class Component {
     this.childIndex_[component.id()] = null;
     this.childNameIndex_[component.name()] = null;
 
-    let compEl = component.el();
+    const compEl = component.el();
 
     if (compEl && compEl.parentNode === this.contentEl()) {
       this.contentEl().removeChild(component.el());
@@ -499,14 +500,14 @@ class Component {
    * @method initChildren
    */
   initChildren() {
-    let children = this.options_.children;
+    const children = this.options_.children;
 
     if (children) {
       // `this` is `parent`
-      let parentOptions = this.options_;
+      const parentOptions = this.options_;
 
-      let handleAdd = (child) => {
-        let name = child.name;
+      const handleAdd = (child) => {
+        const name = child.name;
         let opts = child.opts;
 
         // Allow options for children to be set at the parent options
@@ -536,7 +537,8 @@ class Component {
         // Add a direct reference to the child by name on the parent instance.
         // If two of the same component are used, different names should be supplied
         // for each
-        let newChild = this.addChild(name, opts);
+        const newChild = this.addChild(name, opts);
+
         if (newChild) {
           this[name] = newChild;
         }
@@ -544,7 +546,7 @@ class Component {
 
       // Allow for an array of children details to passed in the options
       let workingChildren;
-      let Tech = Component.getComponent('Tech');
+      const Tech = Component.getComponent('Tech');
 
       if (Array.isArray(children)) {
         workingChildren = children;
@@ -560,13 +562,13 @@ class Component {
                 return !workingChildren.some(function(wchild) {
                   if (typeof wchild === 'string') {
                     return child === wchild;
-                  } else {
-                    return child === wchild.name;
                   }
+                  return child === wchild.name;
                 });
               }))
       .map((child) => {
-        let name, opts;
+        let name;
+        let opts;
 
         if (typeof child === 'string') {
           name = child;
@@ -582,8 +584,9 @@ class Component {
         // we have to make sure that child.name isn't in the techOrder since
         // techs are registerd as Components but can't aren't compatible
         // See https://github.com/videojs/video.js/issues/2772
-        let c = Component.getComponent(child.opts.componentClass ||
+        const c = Component.getComponent(child.opts.componentClass ||
                                        toTitleCase(child.name));
+
         return c && !Tech.isTech(c);
       })
       .forEach(handleAdd);
@@ -605,7 +608,7 @@ class Component {
   /**
    * Add an event listener to this component's element
    * ```js
-   *     var myFunc = function(){
+   *     var myFunc = function() {
    *       var myComponent = this;
    *       // Do something when the event is fired
    *     };
@@ -794,7 +797,7 @@ class Component {
    * @return {Component}
    * @method ready
    */
-  ready(fn, sync=false) {
+  ready(fn, sync = false) {
     if (fn) {
       if (this.isReady_) {
         if (sync) {
@@ -821,14 +824,14 @@ class Component {
     this.isReady_ = true;
 
     // Ensure ready is triggerd asynchronously
-    this.setTimeout(function(){
-      let readyQueue = this.readyQueue_;
+    this.setTimeout(function() {
+      const readyQueue = this.readyQueue_;
 
       // Reset Ready Queue
       this.readyQueue_ = [];
 
       if (readyQueue && readyQueue.length > 0) {
-        readyQueue.forEach(function(fn){
+        readyQueue.forEach(function(fn) {
           fn.call(this);
         }, this);
       }
@@ -1074,8 +1077,8 @@ class Component {
     }
 
     // Get dimension value from style
-    let val = this.el_.style[widthOrHeight];
-    let pxIndex = val.indexOf('px');
+    const val = this.el_.style[widthOrHeight];
+    const pxIndex = val.indexOf('px');
 
     if (pxIndex !== -1) {
       // Return the pixel value with no 'px'
@@ -1086,6 +1089,66 @@ class Component {
     // If component has display:none, offset will return 0
     // TODO: handle display:none and no dimension style using px
     return parseInt(this.el_['offset' + toTitleCase(widthOrHeight)], 10);
+  }
+
+  /**
+   * Get width or height of computed style
+   * @param  {String} widthOrHeight  'width' or 'height'
+   * @return {Number|Boolean} The bolean false if nothing was set
+   * @method currentDimension
+   */
+  currentDimension(widthOrHeight) {
+    let computedWidthOrHeight = 0;
+
+    if (widthOrHeight !== 'width' && widthOrHeight !== 'height') {
+      throw new Error('currentDimension only accepts width or height value');
+    }
+
+    if (typeof window.getComputedStyle === 'function') {
+      const computedStyle = window.getComputedStyle(this.el_);
+
+      computedWidthOrHeight = computedStyle.getPropertyValue(widthOrHeight) || computedStyle[widthOrHeight];
+    } else if (this.el_.currentStyle) {
+      // ie 8 doesn't support computed style, shim it
+      // return clientWidth or clientHeight instead for better accuracy
+      const rule = `offset${toTitleCase(widthOrHeight)}`;
+
+      computedWidthOrHeight = this.el_[rule];
+    }
+
+    // remove 'px' from variable and parse as integer
+    computedWidthOrHeight = parseFloat(computedWidthOrHeight);
+    return computedWidthOrHeight;
+  }
+
+  /**
+   * Get an object which contains width and height values of computed style
+   * @return {Object} The dimensions of element
+   * @method currentDimensions
+   */
+  currentDimensions() {
+    return {
+      width: this.currentDimension('width'),
+      height: this.currentDimension('height')
+    };
+  }
+
+  /**
+   * Get width of computed style
+   * @return {Integer}
+   * @method currentWidth
+   */
+  currentWidth() {
+    return this.currentDimension('width');
+  }
+
+  /**
+   * Get height of computed style
+   * @return {Integer}
+   * @method currentHeight
+   */
+  currentHeight() {
+    return this.currentDimension('height');
   }
 
   /**
@@ -1115,8 +1178,11 @@ class Component {
     this.on('touchstart', function(event) {
       // If more than one finger, don't consider treating this as a click
       if (event.touches.length === 1) {
-        // Copy the touches object to prevent modifying the original
-        firstTouch = assign({}, event.touches[0]);
+        // Copy pageX/pageY from the object
+        firstTouch = {
+          pageX: event.touches[0].pageX,
+          pageY: event.touches[0].pageY
+        };
         // Record start time so we can detect a tap vs. "touch and hold"
         touchStart = new Date().getTime();
         // Reset couldBeTap tracking
@@ -1133,7 +1199,7 @@ class Component {
         // So, if we moved only a small distance, this could still be a tap
         const xdiff = event.touches[0].pageX - firstTouch.pageX;
         const ydiff = event.touches[0].pageY - firstTouch.pageY;
-        const touchDistance = Math.sqrt(xdiff  * xdiff + ydiff  * ydiff);
+        const touchDistance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
 
         if (touchDistance > tapMovementThreshold) {
           couldBeTap = false;
@@ -1236,7 +1302,7 @@ class Component {
     fn = Fn.bind(this, fn);
 
     // window.setTimeout would be preferable here, but due to some bizarre issue with Sinon and/or Phantomjs, we can't.
-    let timeoutId = window.setTimeout(fn, timeout);
+    const timeoutId = window.setTimeout(fn, timeout);
 
     const disposeFn = function() {
       this.clearTimeout(timeoutId);
@@ -1279,7 +1345,7 @@ class Component {
   setInterval(fn, interval) {
     fn = Fn.bind(this, fn);
 
-    let intervalId = window.setInterval(fn, interval);
+    const intervalId = window.setInterval(fn, interval);
 
     const disposeFn = function() {
       this.clearInterval(intervalId);
@@ -1364,7 +1430,7 @@ class Component {
     // Set up the constructor using the supplied init method
     // or using the init of the parent object
     // Make sure to check the unobfuscated version for external libs
-    let init = props.init || props.init || this.prototype.init || this.prototype.init || function() {};
+    const init = props.init || props.init || this.prototype.init || this.prototype.init || function() {};
     // In Resig's simple class inheritance (previously used) the constructor
     //  is a function that calls `this.init.apply(arguments)`
     // However that would prevent us from using `ParentObject.call(this);`
@@ -1374,7 +1440,7 @@ class Component {
     //    `ParentObject.prototype.init.apply(this, arguments);`
     //  Bleh. We're not creating a _super() function, so it's good to keep
     //  the parent constructor reference simple.
-    let subObj = function() {
+    const subObj = function() {
       init.apply(this, arguments);
     };
 
@@ -1388,7 +1454,7 @@ class Component {
     subObj.extend = Component.extend;
 
     // Extend subObj's prototype with functions and other properties from props
-    for (let name in props) {
+    for (const name in props) {
       if (props.hasOwnProperty(name)) {
         subObj.prototype[name] = props[name];
       }

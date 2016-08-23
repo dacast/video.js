@@ -1,34 +1,32 @@
+/* eslint-env qunit */
 import HTMLTrackElement from '../../../src/js/tracks/html-track-element.js';
-import TextTrack from '../../../src/js/tracks/text-track.js';
-import window from 'global/window';
 
-let noop = Function.prototype;
-let defaultTech = {
-  textTracks: noop,
-  on: noop,
-  off: noop,
-  currentTime: noop
+const defaultTech = {
+  textTracks() {},
+  on() {},
+  off() {},
+  currentTime() {}
 };
 
-q.module('HTML Track Element');
+QUnit.module('HTML Track Element');
 
-test('html track element requires a tech', function() {
-  window.throws(
+QUnit.test('html track element requires a tech', function(assert) {
+  assert.throws(
     function() {
-      new HTMLTrackElement();
+      return new HTMLTrackElement();
     },
     new Error('A tech was not provided.'),
     'a tech is required for html track element'
   );
 });
 
-test('can create a html track element with various properties', function() {
-  let kind = 'chapters',
-      label = 'English',
-      language = 'en',
-      src = 'http://www.example.com';
+QUnit.test('can create a html track element with various properties', function(assert) {
+  const kind = 'chapters';
+  const label = 'English';
+  const language = 'en';
+  const src = 'http://www.example.com';
 
-  let htmlTrackElement = new  HTMLTrackElement({
+  const htmlTrackElement = new HTMLTrackElement({
     kind,
     label,
     language,
@@ -36,39 +34,36 @@ test('can create a html track element with various properties', function() {
     tech: defaultTech
   });
 
-  equal(htmlTrackElement.default, undefined, 'we have a default');
-  equal(htmlTrackElement.kind, kind, 'we have a kind');
-  equal(htmlTrackElement.label, label, 'we have a label');
-  equal(htmlTrackElement.readyState, 0, 'we have a readyState');
-  equal(htmlTrackElement.src, src, 'we have a src');
-  equal(htmlTrackElement.srclang, language, 'we have a srclang');
-  equal(htmlTrackElement.track.cues, null, 'we have a track');
+  assert.equal(typeof htmlTrackElement.default, 'undefined', 'we have a default');
+  assert.equal(htmlTrackElement.kind, kind, 'we have a kind');
+  assert.equal(htmlTrackElement.label, label, 'we have a label');
+  assert.equal(htmlTrackElement.readyState, 0, 'we have a readyState');
+  assert.equal(htmlTrackElement.src, src, 'we have a src');
+  assert.equal(htmlTrackElement.srclang, language, 'we have a srclang');
+  assert.equal(htmlTrackElement.track.cues, null, 'we have a track');
 });
 
-test('defaults when items not provided', function() {
-  let htmlTrackElement = new  HTMLTrackElement({
+QUnit.test('defaults when items not provided', function(assert) {
+  const htmlTrackElement = new HTMLTrackElement({
     tech: defaultTech
   });
 
-  equal(htmlTrackElement.default, undefined, 'we have a default');
-  equal(htmlTrackElement.kind, 'subtitles', 'we have a kind');
-  equal(htmlTrackElement.label, '', 'we have a label');
-  equal(htmlTrackElement.readyState, 0, 'we have a readyState');
-  equal(htmlTrackElement.src, undefined, 'we have a src');
-  equal(htmlTrackElement.srclang, '', 'we have a srclang');
-  equal(htmlTrackElement.track.cues.length, 0, 'we have a track');
+  assert.equal(typeof htmlTrackElement.default, 'undefined', 'we have a default');
+  assert.equal(htmlTrackElement.kind, 'subtitles', 'we have a kind');
+  assert.equal(htmlTrackElement.label, '', 'we have a label');
+  assert.equal(htmlTrackElement.readyState, 0, 'we have a readyState');
+  assert.equal(typeof htmlTrackElement.src, 'undefined', 'we have a src');
+  assert.equal(htmlTrackElement.srclang, '', 'we have a srclang');
+  assert.equal(htmlTrackElement.track.cues.length, 0, 'we have a track');
 });
 
-test('fires loadeddata when track cues become populated', function() {
-  let changes = 0,
-      loadHandler;
-
-  loadHandler = function() {
+QUnit.test('fires loadeddata when track cues become populated', function(assert) {
+  let changes = 0;
+  const loadHandler = function() {
     changes++;
   };
-
-  let htmlTrackElement = new HTMLTrackElement({
-    tech: noop
+  const htmlTrackElement = new HTMLTrackElement({
+    tech() {}
   });
 
   htmlTrackElement.addEventListener('load', loadHandler);
@@ -76,6 +71,6 @@ test('fires loadeddata when track cues become populated', function() {
   // trigger loaded cues event
   htmlTrackElement.track.trigger('loadeddata');
 
-  equal(changes, 1, 'a loadeddata event trigger addEventListener');
-  equal(htmlTrackElement.readyState, 2, 'readyState is loaded');
+  assert.equal(changes, 1, 'a loadeddata event trigger addEventListener');
+  assert.equal(htmlTrackElement.readyState, 2, 'readyState is loaded');
 });

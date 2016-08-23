@@ -29,3 +29,5 @@ test/coverage/*
 
 dist/*
 /nbproject/private/
+es5/*
+.idea/

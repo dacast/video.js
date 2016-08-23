@@ -1,91 +1,148 @@
+/* eslint-env qunit */
 import videojs from '../../src/js/video.js';
 import TestHelpers from './test-helpers.js';
-import Player from '../../src/js/player.js';
 import * as Dom from '../../src/js/utils/dom.js';
-import log from '../../src/js/utils/log.js';
 import document from 'global/document';
 
-q.module('video.js');
+QUnit.module('video.js');
 
-test('should create a video tag and have access children in old IE', function(){
-  var fixture = document.getElementById('qunit-fixture');
+QUnit.test('should create a video tag and have access children in old IE', function(assert) {
+  const fixture = document.getElementById('qunit-fixture');
 
   fixture.innerHTML += '<video id="test_vid_id"><source type="video/mp4"></video>';
 
-  var vid = document.getElementById('test_vid_id');
+  const vid = document.getElementById('test_vid_id');
 
-  ok(vid.childNodes.length === 1);
-  ok(vid.childNodes[0].getAttribute('type') === 'video/mp4');
+  assert.ok(vid.childNodes.length === 1);
+  assert.ok(vid.childNodes[0].getAttribute('type') === 'video/mp4');
 });
 
-test('should return a video player instance', function(){
-  var fixture = document.getElementById('qunit-fixture');
-  fixture.innerHTML += '<video id="test_vid_id"></video><video id="test_vid_id2"></video>';
+QUnit.test('should return a video player instance', function(assert) {
+  const fixture = document.getElementById('qunit-fixture');
 
-  var player = videojs('test_vid_id', { techOrder: ['techFaker'] });
-  ok(player, 'created player from tag');
-  ok(player.id() === 'test_vid_id');
-  ok(videojs.getPlayers()['test_vid_id'] === player, 'added player to global reference');
+  fixture.innerHTML += '<video id="test_vid_id"></video>' +
+                       '<video id="test_vid_id2"></video>';
 
-  var playerAgain = videojs('test_vid_id');
-  ok(player === playerAgain, 'did not create a second player from same tag');
+  const player = videojs('test_vid_id', { techOrder: ['techFaker'] });
 
-  var tag2 = document.getElementById('test_vid_id2');
-  var player2 = videojs(tag2, { techOrder: ['techFaker'] });
-  ok(player2.id() === 'test_vid_id2', 'created player from element');
+  assert.ok(player, 'created player from tag');
+  assert.ok(player.id() === 'test_vid_id');
+  assert.ok(videojs.getPlayers().test_vid_id === player,
+           'added player to global reference');
+
+  const playerAgain = videojs('test_vid_id');
+
+  assert.ok(player === playerAgain, 'did not create a second player from same tag');
+
+  assert.equal(player, playerAgain, 'we did not make a new player');
+
+  const tag2 = document.getElementById('test_vid_id2');
+  const player2 = videojs(tag2, { techOrder: ['techFaker'] });
+
+  assert.ok(player2.id() === 'test_vid_id2', 'created player from element');
 });
 
-test('should add the value to the languages object', function() {
-  var code, data, result;
+QUnit.test('should return a video player instance from el html5 tech', function(assert) {
+  const fixture = document.getElementById('qunit-fixture');
 
-  code = 'es';
-  data = {'Hello': 'Hola'};
-  result = videojs.addLanguage(code, data);
+  fixture.innerHTML += '<video id="test_vid_id"></video>' +
+                       '<video id="test_vid_id2"></video>';
 
-  ok(videojs.options.languages[code], 'should exist');
-  equal(videojs.options.languages['es']['Hello'], 'Hola', 'should match');
-  deepEqual(result['Hello'], videojs.options.languages['es']['Hello'], 'should also match');
+  const vid = document.querySelector('#test_vid_id');
+
+  const player = videojs(vid);
+
+  assert.ok(player, 'created player from tag');
+  assert.ok(player.id() === 'test_vid_id');
+  assert.ok(videojs.getPlayers().test_vid_id === player,
+           'added player to global reference');
+
+  const playerAgain = videojs(vid);
+
+  assert.ok(player === playerAgain, 'did not create a second player from same tag');
+  assert.equal(player, playerAgain, 'we did not make a new player');
+
+  const tag2 = document.getElementById('test_vid_id2');
+  const player2 = videojs(tag2, { techOrder: ['techFaker'] });
+
+  assert.ok(player2.id() === 'test_vid_id2', 'created player from element');
 });
 
-test('should add the value to the languages object with lower case lang code', function() {
-  var code, data, result;
+QUnit.test('should return a video player instance from el techfaker', function(assert) {
+  const fixture = document.getElementById('qunit-fixture');
 
-  code = 'DE';
-  data = {'Hello': 'Guten Tag'};
-  result = videojs.addLanguage(code, data);
+  fixture.innerHTML += '<video id="test_vid_id"></video>' +
+                       '<video id="test_vid_id2"></video>';
 
-  ok(videojs.options['languages'][code.toLowerCase()], 'should exist');
-  equal(videojs.options['languages'][code.toLowerCase()]['Hello'], 'Guten Tag', 'should match');
-  deepEqual(result, videojs.options['languages'][code.toLowerCase()], 'should also match');
+  const vid = document.querySelector('#test_vid_id');
+  const player = videojs(vid, {techOrder: ['techFaker']});
+
+  assert.ok(player, 'created player from tag');
+  assert.ok(player.id() === 'test_vid_id');
+  assert.ok(videojs.getPlayers().test_vid_id === player,
+           'added player to global reference');
+
+  const playerAgain = videojs(vid);
+
+  assert.ok(player === playerAgain, 'did not create a second player from same tag');
+  assert.equal(player, playerAgain, 'we did not make a new player');
+
+  const tag2 = document.getElementById('test_vid_id2');
+  const player2 = videojs(tag2, { techOrder: ['techFaker'] });
+
+  assert.ok(player2.id() === 'test_vid_id2', 'created player from element');
 });
 
-test('should expose plugin registry function', function() {
-  var pluginName, pluginFunction, player;
+QUnit.test('should add the value to the languages object', function(assert) {
+  const code = 'es';
+  const data = {Hello: 'Hola'};
+  const result = videojs.addLanguage(code, data);
 
-  pluginName = 'foo';
-  pluginFunction = function(options) {};
+  assert.ok(videojs.options.languages[code], 'should exist');
+  assert.equal(videojs.options.languages.es.Hello, 'Hola', 'should match');
+  assert.deepEqual(result.Hello, videojs.options.languages.es.Hello, 'should also match');
+});
 
-  ok(videojs.plugin, 'should exist');
+QUnit.test('should add the value to the languages object with lower case lang code', function(assert) {
+  const code = 'DE';
+  const data = {Hello: 'Guten Tag'};
+  const result = videojs.addLanguage(code, data);
+
+  assert.ok(videojs.options.languages[code.toLowerCase()], 'should exist');
+  assert.equal(videojs.options.languages[code.toLowerCase()].Hello,
+              'Guten Tag',
+              'should match');
+  assert.deepEqual(result,
+                  videojs.options.languages[code.toLowerCase()],
+                  'should also match');
+});
+
+QUnit.test('should expose plugin registry function', function(assert) {
+  const pluginName = 'foo';
+  const pluginFunction = function(options) {};
+
+  assert.ok(videojs.plugin, 'should exist');
 
   videojs.plugin(pluginName, pluginFunction);
 
-  player = TestHelpers.makePlayer();
+  const player = TestHelpers.makePlayer();
 
-  ok(player.foo, 'should exist');
-  equal(player.foo, pluginFunction, 'should be equal');
+  assert.ok(player.foo, 'should exist');
+  assert.equal(player.foo, pluginFunction, 'should be equal');
 });
 
-test('should expose options and players properties for backward-compatibility', function() {
-  ok(typeof videojs.options, 'object', 'options should be an object');
-  ok(typeof videojs.players, 'object', 'players should be an object');
+QUnit.test('should expose options and players properties for backward-compatibility', function(assert) {
+  assert.ok(typeof videojs.options, 'object', 'options should be an object');
+  assert.ok(typeof videojs.players, 'object', 'players should be an object');
 });
 
-test('should expose DOM functions', function() {
+QUnit.test('should expose DOM functions', function(assert) {
 
   // Keys are videojs methods, values are Dom methods.
-  let methods = {
+  const methods = {
     isEl: 'isEl',
     isTextNode: 'isTextNode',
+    createEl: 'createEl',
     hasClass: 'hasElClass',
     addClass: 'addElClass',
     removeClass: 'removeElClass',
@@ -97,11 +154,14 @@ test('should expose DOM functions', function() {
     appendContent: 'appendContent'
   };
 
-  let keys = Object.keys(methods);
+  const keys = Object.keys(methods);
 
-  expect(keys.length);
+  assert.expect(keys.length);
   keys.forEach(function(vjsName) {
-    let domName = methods[vjsName];
-    strictEqual(videojs[vjsName], Dom[domName], `videojs.${vjsName} is a reference to Dom.${domName}`);
+    const domName = methods[vjsName];
+
+    assert.strictEqual(videojs[vjsName],
+                      Dom[domName],
+                      `videojs.${vjsName} is a reference to Dom.${domName}`);
   });
 });
